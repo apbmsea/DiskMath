@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maze Visualizer</title>
+  <style>
+    body { display: flex; flex-direction: column; align-items:  center; justify-content: center; height: 100vh; gap: 50px;}
+    canvas { border: 1px solid #000000; }
+    button { padding: 15px 30px; border: none; background-color: #fff; border-radius: 25px; }
+    div { display: flex; justify-content: space-between; gap: 40px;}
+  </style>
+</head>
+<body>
+  <canvas id="maze" width="400" height="400"></canvas>
+  <div>
+    <button onclick="generateMaze()">Сгенерировать лабиринт</button>
+    <button onclick="solveMaze()">Найти путь</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('maze');
+    const ctx = canvas.getContext('2d');
+    const SIZE = 20;
+    let maze = [];
+
+    function drawMaze() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      maze.forEach((row, y) => {
+        row.forEach((cell, x) => {
+          const px = x * SIZE;
+          const py = y * SIZE;
+          ctx.strokeStyle = 'black';
+          if (cell.top)    ctx.strokeRect(px, py, SIZE, 1);
+          if (cell.right)  ctx.strokeRect(px + SIZE, py, 1, SIZE);
+          if (cell.bottom) ctx.strokeRect(px, py + SIZE, SIZE, 1);
+          if (cell.left)   ctx.strokeRect(px, py, 1, SIZE);
+        });
+      });
+    }
+
+    async function generateMaze() {
+      const res = await fetch('http://localhost:3000/generate');
+      const data = await res.json();
+      maze = data.maze;
+      drawMaze();
+    }
+
+    async function solveMaze() {
+      const res = await fetch('http://localhost:3000/solve');
+      const { visitOrder, path } = await res.json();
+
+      for (let i = 0; i < visitOrder.length; i++) {
+        const [x, y] = visitOrder[i];
+        ctx.fillStyle = 'grey';
+        ctx.fillRect(x * SIZE + 4, y * SIZE + 4, SIZE - 8, SIZE - 8);
+        await new Promise(r => setTimeout(r, 10));
+      }
+
+      for (let [x, y] of path) {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(x * SIZE + 4, y * SIZE + 4, SIZE - 8, SIZE - 8);
+      }
+    }
+
+    generateMaze();
+  </script>
+</body>
+</html>

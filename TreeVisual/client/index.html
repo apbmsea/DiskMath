@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск с визуальным трекингом</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .node {
+            display: inline-block;
+            margin: 5px;
+            padding: 15px;
+            border: 1px solid black;
+            border-radius: 5px;
+            transition: background-color 0.5s;
+        }
+        .highlight {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Поиск с визуальным трекингом в дереве</h1>
+    <button id="generateTree">Сгенерировать дерево</button>
+    <br><br>
+    <input type="number" id="searchValue" placeholder="Введите число для поиска">
+    <button id="searchButton">Поиск</button>
+    
+    <div id="treeVisualization"></div>
+
+    <script>
+        let treeRoot = null;
+
+        const renderTree = (node) => {
+            if (!node) return '';
+            return 
+                <div class="node" data-value={node.value} id={node-node.value}>
+                    ${node.value}
+                    <div style="display: flex;">
+                        ${renderTree(node.left)}
+                        ${renderTree(node.right)}
+                    </div>
+                </div>
+            ;
+        };
+
+        const highlightPath = (path) => {
+            path.forEach(value => {
+                const nodeElement = document.getElementById(node-{$value});
+                if (nodeElement) {
+                    nodeElement.classList.add('highlight');
+                }
+            });
+        };
+        document.getElementById('generateTree').onclick = async () => {
+            const response = await fetch('http://localhost:5000/generate-tree');
+            treeRoot = await response.json();
+            document.getElementById('treeVisualization').innerHTML = renderTree(treeRoot);
+        };
+
+        document.getElementById('searchButton').onclick = async () => {
+            const value = document.getElementById('searchValue').value;
+            const response = await fetch('http://localhost:5000/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value: parseInt(value) })
+            });
+            const result = await response.json();
+
+            if (result.found) {
+                alert('Элемент найден!');
+            } else {
+                alert('Элемент не найден.');
+            }
+
+            highlightPath(result.path);
+        };
+    </script>
+</body>
+</html>
